@@ -1,0 +1,14 @@
+
+
+<div id="socketout"></div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  socket.on('newPhoto', function (data) {
+    	$('#socketout').append("<image src='"+data+"'/> <br />");
+			console.log('Hello', data);
+  });
+</script>
+
