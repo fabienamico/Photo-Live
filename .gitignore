@@ -1,3 +1,4 @@
 node_modules
 *.swp
-public/images/download/*
+*.fabien
+public/img/download/

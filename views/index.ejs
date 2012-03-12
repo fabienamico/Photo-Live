@@ -1,13 +1,16 @@
 
-
-<div id="socketout"></div>
-
+<section id="photos">
+        <h1>Photos</h1>
+        <div class="row">
+            <div id="socketout" class="span9"></div>	
+				</div>
+</section>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io.connect('http://localhost');
   socket.on('newPhoto', function (data) {
-    	$('#socketout').prepend("<image src='"+data+"'/> ");
+    	$('#socketout').prepend("<a href='#'><image src='"+data+"'/></a>");
   });
 </script>
 

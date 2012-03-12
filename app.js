@@ -6,7 +6,9 @@
 var express = require('express')
   , routes = require('./routes')
 	, fs = require('fs')
-	, im = require('imagemagick');
+	, im = require('imagemagick')
+	, twitter = require('ntwitter')
+	, twitterSettings = require('./twitterSettings').settings;
 
 var app = module.exports = express.createServer();
 
@@ -37,7 +39,7 @@ app.post('/file-upload', function(req, res){
 		// get the temporary location of the file
     var tmp_path = req.files.thumbnail.path;
     // set where the file should actually exists - in this case it is in the "images" directory
-    var target_path = './public/images/download/' + req.files.thumbnail.name;
+    var target_path = './public/img/download/' + req.files.thumbnail.name;
     // move the file from the temporary location to the intended location
     fs.rename(tmp_path, target_path, function(err) {
         if (err) throw err;
@@ -49,7 +51,7 @@ app.post('/file-upload', function(req, res){
 						im.resize({ srcData: fs.readFileSync(target_path, 'binary'),width: 320, height: 240}, 
 										function(err, stdout, stderr){
   											if (err) throw err;
-  											resizedPath =  './public/images/download/resized-' + req.files.thumbnail.name;
+  											resizedPath =  './public/img/download/resized-' + req.files.thumbnail.name;
 												fs.writeFileSync(resizedPath, stdout, 'binary');
 
 												globalSocket.forEach(function(socket){
@@ -66,6 +68,33 @@ app.post('/file-upload', function(req, res){
 
 });
 
+
+// Twitter stream
+//
+var twit = new twitter({
+      consumer_key: twitterSettings.consumer_key,
+      consumer_secret: twitterSettings.consumer_secret,
+      access_token_key: twitterSettings.access_token_key,
+      access_token_secret: twitterSettings.access_token_secret
+    });
+
+twit.stream('statuses/filter', {'track':'TestTweetNode'}, function(stream) {
+      stream.on('data', function (data) {
+        console.log(data.entities.media[0].media_url);
+				mediaUrl = data.entities.media[0].media_url;
+				globalSocket.forEach(function(socket){
+						socket.emit('newPhoto', mediaUrl);
+				});
+
+
+      });
+    });
+/*
+twit.search('#DevoxxFR', function(err, data) {
+      console.log('search');
+      console.log(data);
+    });
+*/
 app.listen(3000);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
