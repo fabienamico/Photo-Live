@@ -53,13 +53,8 @@ app.post('/file-upload', function(req, res){
   											if (err) throw err;
   											resizedPath =  './public/img/download/resized-' + req.files.thumbnail.name;
 												fs.writeFileSync(resizedPath, stdout, 'binary');
-
-												globalSocket.forEach(function(socket){
-													socket.emit('newPhoto', resizedPath);
-												});
-
+												sendPhotoToAllSocket(resizedPath);
 										});
-
 						
             res.send('File uploaded ');
         });
@@ -69,32 +64,34 @@ app.post('/file-upload', function(req, res){
 });
 
 
-// Twitter stream
-//
+/**
+ * Send photo to all Socket
+ */
+sendPhotoToAllSocket = function(newPhoto){
+	globalSocket.forEach(function(socket){
+			socket.emit('newPhoto', resizedPath);
+	});
+
+}
+
+/**
+ * Twitter stream
+ */
 var twit = new twitter({
       consumer_key: twitterSettings.consumer_key,
       consumer_secret: twitterSettings.consumer_secret,
       access_token_key: twitterSettings.access_token_key,
       access_token_secret: twitterSettings.access_token_secret
     });
-
 twit.stream('statuses/filter', {'track':'TestTweetNode'}, function(stream) {
       stream.on('data', function (data) {
         console.log(data.entities.media[0].media_url);
 				mediaUrl = data.entities.media[0].media_url;
-				globalSocket.forEach(function(socket){
-						socket.emit('newPhoto', mediaUrl);
-				});
-
-
+				sendPhotoToAllSocket(mediaUrl);
       });
     });
-/*
-twit.search('#DevoxxFR', function(err, data) {
-      console.log('search');
-      console.log(data);
-    });
-*/
+
+
 app.listen(3000);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
