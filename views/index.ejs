@@ -7,8 +7,7 @@
 <script>
   var socket = io.connect('http://localhost');
   socket.on('newPhoto', function (data) {
-    	$('#socketout').append("<image src='"+data+"'/> <br />");
-			console.log('Hello', data);
+    	$('#socketout').prepend("<image src='"+data+"'/> ");
   });
 </script>
 

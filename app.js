@@ -5,7 +5,8 @@
 
 var express = require('express')
   , routes = require('./routes')
-	, fs = require('fs');
+	, fs = require('fs')
+	, im = require('imagemagick');
 
 var app = module.exports = express.createServer();
 
@@ -36,7 +37,7 @@ app.post('/file-upload', function(req, res){
 		// get the temporary location of the file
     var tmp_path = req.files.thumbnail.path;
     // set where the file should actually exists - in this case it is in the "images" directory
-    var target_path = './public/images/' + req.files.thumbnail.name;
+    var target_path = './public/images/download/' + req.files.thumbnail.name;
     // move the file from the temporary location to the intended location
     fs.rename(tmp_path, target_path, function(err) {
         if (err) throw err;
@@ -44,10 +45,21 @@ app.post('/file-upload', function(req, res){
         fs.unlink(tmp_path, function() {
             if (err) throw err;
 						console.log('Sockets', globalSocket);
-						globalSocket.forEach(function(socket){
-								socket.emit('newPhoto', target_path);
-						});
-            res.send('File uploaded to: ' + target_path + ' - ' + req.files.thumbnail.size + ' bytes');
+
+						im.resize({ srcData: fs.readFileSync(target_path, 'binary'),width: 320, height: 240}, 
+										function(err, stdout, stderr){
+  											if (err) throw err;
+  											resizedPath =  './public/images/download/resized-' + req.files.thumbnail.name;
+												fs.writeFileSync(resizedPath, stdout, 'binary');
+
+												globalSocket.forEach(function(socket){
+													socket.emit('newPhoto', resizedPath);
+												});
+
+										});
+
+						
+            res.send('File uploaded ');
         });
     });
 		
