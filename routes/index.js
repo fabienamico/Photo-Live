@@ -13,5 +13,3 @@ exports.initFileUpload = function(req, res){
   res.render('file-upload.ejs')
 };
 			
-
-};
